@@ -1,0 +1,45 @@
+CHIP Mux8Way {
+    IN a, b, c, d, e, f, g, h, sel[3];
+    OUT out;
+
+    PARTS:
+    Not(in=sel[0], out=notsel0);
+    Not(in=sel[1], out=notsel1);
+    Not(in=sel[2], out=notsel2);
+
+    And(a=notsel2, b=notsel1, out=x00u); // 00?
+    And(a=notsel2, b=sel[1],  out=x01u); // 01?
+    And(a=sel[2],  b=notsel1, out=x10u); // 10?
+    And(a=sel[2],  b=sel[1],  out=x11u); // 11?
+
+    And(a=x00u,    b=notsel0, out=x000); // 000
+    And(a=x00u,    b=sel[0],  out=x001); // 001
+    And(a=x01u,    b=notsel0, out=x010); // 010
+    And(a=x01u,    b=sel[0],  out=x011); // 011
+    And(a=x10u,    b=notsel0, out=x100); // 100
+    And(a=x10u,    b=sel[0],  out=x101); // 101
+    And(a=x11u,    b=notsel0, out=x110); // 110
+    And(a=x11u,    b=sel[0],  out=x111); // 111
+
+    // Only one y_i will be 1, everyone else will be 0.
+    And(a=a, b=x000, out=y0);
+    And(a=b, b=x001, out=y1);
+    And(a=c, b=x010, out=y2);
+    And(a=d, b=x011, out=y3);
+    And(a=e, b=x100, out=y4);
+    And(a=f, b=x101, out=y5);
+    And(a=g, b=x110, out=y6);
+    And(a=h, b=x111, out=y7);
+
+    // Getting the value of the selected input.
+    Or(a=y0, b=y1, out=z0);
+    Or(a=y2, b=y3, out=z1);
+    Or(a=y4, b=y5, out=z2);
+    Or(a=y6, b=y7, out=z3);
+
+    Or(a=z0, b=z1, out=w0);
+    Or(a=z2, b=z3, out=w1);
+
+    Or(a=w0, b=w1, out=out);
+
+}
