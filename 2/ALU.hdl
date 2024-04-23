@@ -1,0 +1,80 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/2/ALU.hdl
+/**
+ * ALU (Arithmetic Logic Unit):
+ * Computes out = one of the following functions:
+ *                0, 1, -1,
+ *                x, y, !x, !y, -x, -y,
+ *                x + 1, y + 1, x - 1, y - 1,
+ *                x + y, x - y, y - x,
+ *                x & y, x | y
+ * on the 16-bit inputs x, y,
+ * according to the input bits zx, nx, zy, ny, f, no.
+ * In addition, computes the two output bits:
+ * if (out == 0) zr = 1, else zr = 0
+ * if (out < 0)  ng = 1, else ng = 0
+ */
+// Implementation: Manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) sets x = 0        // 16-bit constant
+// if (nx == 1) sets x = !x       // bitwise not
+// if (zy == 1) sets y = 0        // 16-bit constant
+// if (ny == 1) sets y = !y       // bitwise not
+// if (f == 1)  sets out = x + y  // integer 2's complement addition
+// if (f == 0)  sets out = x & y  // bitwise and
+// if (no == 1) sets out = !out   // bitwise not
+CHIP ALU {
+    IN x[16], y[16], zx, nx, zy, ny, f, no;
+    OUT zr, ng, out[16];
+
+    PARTS:
+    // Modify x
+    Zeros16(out=xzeros);
+    Mux16(a=x, b=xzeros, sel=zx, out=x2);
+
+    Not16(in=x2, out=notx2);
+    Mux16(a=x2, b=notx2, sel=nx, out=x3);
+
+    // Modify y
+    Zeros16(out=yzeros);
+    Mux16(a=y, b=yzeros, sel=zy, out=y2);
+
+    Not16(in=y2, out=noty2);
+    Mux16(a=y2, b=noty2, sel=ny, out=y3);
+
+    // Apply f
+    And16(a=x3, b=y3, out=f1);
+    Add16(a=x3, b=y3, out=f2);
+    Mux16(a=f1, b=f2, sel=f, out=outx);
+
+    // Modify out
+    Not16(in=outx, out=outy);
+    Mux16(a=outx, b=outy, sel=no, out=out,
+        out[0]=out0, out[1]=out1, out[2]=out2, out[3]=out3,
+        out[4]=out4, out[5]=out5, out[6]=out6, out[7]=out7,
+        out[8]=out8, out[9]=out9, out[10]=out10, out[11]=out11,
+        out[12]=out12, out[13]=out13, out[14]=out14, out[15]=out15);
+
+    // Evaluate ng.
+    Or(a=false, b=out15, out=ng);
+
+    // Evaluate zr.
+    Or(a=out0, b=out1, out=zr0);
+    Or(a=zr0, b=out2, out=zr1);
+    Or(a=zr1, b=out3, out=zr2);
+    Or(a=zr2, b=out4, out=zr3);
+    Or(a=zr3, b=out5, out=zr4);
+    Or(a=zr4, b=out6, out=zr5);
+    Or(a=zr5, b=out7, out=zr6);
+    Or(a=zr6, b=out8, out=zr7);
+    Or(a=zr7, b=out9, out=zr8);
+    Or(a=zr8, b=out10, out=zr9);
+    Or(a=zr9, b=out11, out=zr10);
+    Or(a=zr10, b=out12, out=zr11);
+    Or(a=zr11, b=out13, out=zr12);
+    Or(a=zr12, b=out14, out=zr13);
+    Or(a=zr13, b=out15, out=zr14);
+    Not(in=zr14, out=zr);
+}
