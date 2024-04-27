@@ -1,0 +1,54 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/3/b/RAM16K.hdl
+/**
+ * Memory of 16K 16-bit registers.
+ * If load is asserted, the value of the register selected by
+ * address is set to in; Otherwise, the value does not change.
+ * The value of the selected register is emitted by out.
+ */
+CHIP RAM16K {
+    IN in[16], load, address[14];
+    OUT out[16];
+
+    PARTS:
+    // Split address into left part (that will select which RAM will be
+    // selected) and right part (that will select the memory address within
+    // that RAM).
+    Not(in=address[13], out=notaddress13);
+    Not(in=address[12], out=notaddress12);
+
+    And(a=notaddress13, b=notaddress12, out=x00); // 00????????????
+    And(a=notaddress13, b=address[12],  out=x01); // 01????????????
+    And(a=address[13],  b=notaddress12, out=x10); // 10????????????
+    And(a=address[13],  b=address[12],  out=x11); // 11????????????
+
+    // Evaluate the load bit only for the right RAM.
+    Mux(a=false, b=load, sel=x00, out=load0);
+    Mux(a=false, b=load, sel=x01, out=load1);
+    Mux(a=false, b=load, sel=x10, out=load2);
+    Mux(a=false, b=load, sel=x11, out=load3);
+
+    // Evaluate all RAM4K we have.
+    RAM4K(in=in, load=load0, address=address[0..11], out=out0);
+    RAM4K(in=in, load=load1, address=address[0..11], out=out1);
+    RAM4K(in=in, load=load2, address=address[0..11], out=out2);
+    RAM4K(in=in, load=load3, address=address[0..11], out=out3);
+
+    // Evaluate output.
+    Repeat16(in=x00, out=x0016);
+    Repeat16(in=x01, out=x0116);
+    Repeat16(in=x10, out=x1016);
+    Repeat16(in=x11, out=x1116);
+
+    And16(a=out0, b=x0016, out=x0);
+    And16(a=out1, b=x0116, out=x1);
+    And16(a=out2, b=x1016, out=x2);
+    And16(a=out3, b=x1116, out=x3);
+
+    Or16(a=x0, b=x1, out=y0);
+    Or16(a=x2, b=x3, out=y1);
+
+    Or16(a=y0, b=y1, out=out);
+}

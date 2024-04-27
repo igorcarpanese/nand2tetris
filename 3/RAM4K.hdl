@@ -1,0 +1,85 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/3/b/RAM4K.hdl
+/**
+ * Memory of 4K 16-bit registers.
+ * If load is asserted, the value of the register selected by
+ * address is set to in; Otherwise, the value does not change.
+ * The value of the selected register is emitted by out.
+ */
+CHIP RAM4K {
+    IN in[16], load, address[12];
+    OUT out[16];
+
+    PARTS:
+    // Split address into left part (that will select which RAM will be
+    // selected) and right part (that will select the memory address within
+    // that RAM).
+    Not(in=address[11], out=notaddress11);
+    Not(in=address[10], out=notaddress10);
+    Not(in=address[9], out=notaddress9);
+
+    And(a=notaddress11, b=notaddress10, out=x00u); // 00??????????
+    And(a=notaddress11, b=address[10],  out=x01u); // 01??????????
+    And(a=address[11],  b=notaddress10, out=x10u); // 10??????????
+    And(a=address[11],  b=address[10],  out=x11u); // 11??????????
+
+    And(a=x00u,    b=notaddress9, out=x000); // 000?????????
+    And(a=x00u,    b=address[9],  out=x001); // 001?????????
+    And(a=x01u,    b=notaddress9, out=x010); // 010?????????
+    And(a=x01u,    b=address[9],  out=x011); // 011?????????
+    And(a=x10u,    b=notaddress9, out=x100); // 100?????????
+    And(a=x10u,    b=address[9],  out=x101); // 101?????????
+    And(a=x11u,    b=notaddress9, out=x110); // 110?????????
+    And(a=x11u,    b=address[9],  out=x111); // 111?????????
+
+    // Evaluate the load bit only for the right RAM.
+    Mux(a=false, b=load, sel=x000, out=load0);
+    Mux(a=false, b=load, sel=x001, out=load1);
+    Mux(a=false, b=load, sel=x010, out=load2);
+    Mux(a=false, b=load, sel=x011, out=load3);
+    Mux(a=false, b=load, sel=x100, out=load4);
+    Mux(a=false, b=load, sel=x101, out=load5);
+    Mux(a=false, b=load, sel=x110, out=load6);
+    Mux(a=false, b=load, sel=x111, out=load7);
+
+    // Evaluate all RAM512 we have.
+    RAM512(in=in, load=load0, address=address[0..8], out=out0);
+    RAM512(in=in, load=load1, address=address[0..8], out=out1);
+    RAM512(in=in, load=load2, address=address[0..8], out=out2);
+    RAM512(in=in, load=load3, address=address[0..8], out=out3);
+    RAM512(in=in, load=load4, address=address[0..8], out=out4);
+    RAM512(in=in, load=load5, address=address[0..8], out=out5);
+    RAM512(in=in, load=load6, address=address[0..8], out=out6);
+    RAM512(in=in, load=load7, address=address[0..8], out=out7);
+
+    // Evaluate output.
+    Repeat16(in=x000, out=x00016);
+    Repeat16(in=x001, out=x00116);
+    Repeat16(in=x010, out=x01016);
+    Repeat16(in=x011, out=x01116);
+    Repeat16(in=x100, out=x10016);
+    Repeat16(in=x101, out=x10116);
+    Repeat16(in=x110, out=x11016);
+    Repeat16(in=x111, out=x11116);
+
+    And16(a=out0, b=x00016, out=x0);
+    And16(a=out1, b=x00116, out=x1);
+    And16(a=out2, b=x01016, out=x2);
+    And16(a=out3, b=x01116, out=x3);
+    And16(a=out4, b=x10016, out=x4);
+    And16(a=out5, b=x10116, out=x5);
+    And16(a=out6, b=x11016, out=x6);
+    And16(a=out7, b=x11116, out=x7);
+
+    Or16(a=x0, b=x1, out=y0);
+    Or16(a=x2, b=x3, out=y1);
+    Or16(a=x4, b=x5, out=y2);
+    Or16(a=x6, b=x7, out=y3);
+
+    Or16(a=y0, b=y1, out=z0);
+    Or16(a=y2, b=y3, out=z1);
+
+    Or16(a=z0, b=z1, out=out);
+}

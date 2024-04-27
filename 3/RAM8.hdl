@@ -1,0 +1,88 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/3/a/RAM8.hdl
+/**
+ * Memory of eight 16-bit registers.
+ * If load is asserted, the value of the register selected by
+ * address is set to in; Otherwise, the value does not change.
+ * The value of the selected register is emitted by out.
+ */
+CHIP RAM8 {
+    IN in[16], load, address[3];
+    OUT out[16];
+
+    PARTS:
+    Not(in=address[0], out=notaddress0);
+    Not(in=address[1], out=notaddress1);
+    Not(in=address[2], out=notaddress2);
+
+    And(a=notaddress2, b=notaddress1, out=x00u); // 00?
+    And(a=notaddress2, b=address[1],  out=x01u); // 01?
+    And(a=address[2],  b=notaddress1, out=x10u); // 10?
+    And(a=address[2],  b=address[1],  out=x11u); // 11?
+
+    And(a=x00u,    b=notaddress0, out=x000); // 000
+    And(a=x00u,    b=address[0],  out=x001); // 001
+    And(a=x01u,    b=notaddress0, out=x010); // 010
+    And(a=x01u,    b=address[0],  out=x011); // 011
+    And(a=x10u,    b=notaddress0, out=x100); // 100
+    And(a=x10u,    b=address[0],  out=x101); // 101
+    And(a=x11u,    b=notaddress0, out=x110); // 110
+    And(a=x11u,    b=address[0],  out=x111); // 111
+
+    And(a=true, b=x000, out=address0);
+    And(a=true, b=x001, out=address1);
+    And(a=true, b=x010, out=address2);
+    And(a=true, b=x011, out=address3);
+    And(a=true, b=x100, out=address4);
+    And(a=true, b=x101, out=address5);
+    And(a=true, b=x110, out=address6);
+    And(a=true, b=x111, out=address7);
+
+    And(a=address0, b=load, out=load0);
+    And(a=address1, b=load, out=load1);
+    And(a=address2, b=load, out=load2);
+    And(a=address3, b=load, out=load3);
+    And(a=address4, b=load, out=load4);
+    And(a=address5, b=load, out=load5);
+    And(a=address6, b=load, out=load6);
+    And(a=address7, b=load, out=load7);
+
+    Register(in=in, load=load0, out=out0);
+    Register(in=in, load=load1, out=out1);
+    Register(in=in, load=load2, out=out2);
+    Register(in=in, load=load3, out=out3);
+    Register(in=in, load=load4, out=out4);
+    Register(in=in, load=load5, out=out5);
+    Register(in=in, load=load6, out=out6);
+    Register(in=in, load=load7, out=out7);
+
+    Repeat16(in=x000, out=x00016);
+    Repeat16(in=x001, out=x00116);
+    Repeat16(in=x010, out=x01016);
+    Repeat16(in=x011, out=x01116);
+    Repeat16(in=x100, out=x10016);
+    Repeat16(in=x101, out=x10116);
+    Repeat16(in=x110, out=x11016);
+    Repeat16(in=x111, out=x11116);
+
+    And16(a=out0, b=x00016, out=x0);
+    And16(a=out1, b=x00116, out=x1);
+    And16(a=out2, b=x01016, out=x2);
+    And16(a=out3, b=x01116, out=x3);
+    And16(a=out4, b=x10016, out=x4);
+    And16(a=out5, b=x10116, out=x5);
+    And16(a=out6, b=x11016, out=x6);
+    And16(a=out7, b=x11116, out=x7);
+
+    Or16(a=x0, b=x1, out=y0);
+    Or16(a=x2, b=x3, out=y1);
+    Or16(a=x4, b=x5, out=y2);
+    Or16(a=x6, b=x7, out=y3);
+
+    Or16(a=y0, b=y1, out=z0);
+    Or16(a=y2, b=y3, out=z1);
+
+    Or16(a=z0, b=z1, out=out);
+}
