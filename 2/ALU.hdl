@@ -31,15 +31,13 @@ CHIP ALU {
 
     PARTS:
     // Modify x
-    Zeros16(out=xzeros);
-    Mux16(a=x, b=xzeros, sel=zx, out=x2);
+    Mux16(a=x, b=false, sel=zx, out=x2);
 
     Not16(in=x2, out=notx2);
     Mux16(a=x2, b=notx2, sel=nx, out=x3);
 
     // Modify y
-    Zeros16(out=yzeros);
-    Mux16(a=y, b=yzeros, sel=zy, out=y2);
+    Mux16(a=y, b=false, sel=zy, out=y2);
 
     Not16(in=y2, out=noty2);
     Mux16(a=y2, b=noty2, sel=ny, out=y3);
